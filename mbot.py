@@ -1,6 +1,7 @@
 import discord
 import roll
 import game
+import load
 
 tok = str(open('tok.txt').read())
 
@@ -13,10 +14,10 @@ client = discord.Client(intents=intents)
 # global tables
 prefixes = [
 	"~","+","!",
-	"=","#","$",
-	"%","^","&",
-	"*","-",":",
-	".",">","?",
+	"=","$",
+	"%","&",
+	"-",":",
+	".","?",
 	"\\","/","]",
 	"|","<","}"
 ]
@@ -37,6 +38,27 @@ def splitStr(s):
 		elif (s[i] == '\\' and not escape):
 			escape = True
 		elif (s[i] == '"' and not escape):
+			literal = not literal
+		else:
+			o = o + s[i]
+			ret[index] = o
+			escape = False
+	
+	return ret;
+
+def f_splitStr(s):
+	ret = [""]
+	o = ""
+	index = 0
+	literal = False
+	
+	for i in range(0,len(s)):
+		if (s[i] == " " and not literal):
+			if (o != ""):
+				o = ""
+				ret.append("")
+				index = index + 1
+		elif (s[i] == '"'):
 			literal = not literal
 		else:
 			o = o + s[i]
@@ -302,6 +324,11 @@ cmds = {
 	"debug":	d_data,
 }
 
+f_cmds = {
+	"f_set":	load.f_set,
+	"f_load":	load.f_load,
+}
+
 async def pmes(message):
 	if (message.content[0] in prefixes):
 		mtbl = splitStr(message.content[1:])
@@ -313,8 +340,20 @@ async def pmes(message):
 		else:
 			await message.channel.send(f"invalid command")
 
+def f_pmes(data):
+	mtbl = f_splitStr(data)
+	comand = mtbl[0]	# string
+	args = mtbl[1:]		# table
+	
+	if (comand in f_cmds):
+		f_cmds[comand](args)
+
 @client.event
 async def on_ready():
+	mindex = open('./saves/index.txt','a+')
+	mindex.seek(0)
+	f_pmes(str(mindex.read()))
+	
 	print(f'Logged in as {client.user}')
 
 @client.event
