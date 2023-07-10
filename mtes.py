@@ -54,8 +54,18 @@ def f_pmes(data):
 	
 
 mindex = open('./index.txt','a+')
-mindex.seek(0)
-print(f_splitStr(str(mindex.read())))
+#mindex.seek(0)
+#print(f_splitStr(str(mindex.read())))
 
 mindex.seek(0)
 f_pmes(mindex.read())
+
+load.game.startGame(0x1,0x12,0x1,"main")
+# f_load <type>game <guild>g <channel>ch <commander>c <name>n
+
+load.game.joinGame(0x1,0x12,0x2,"main","noob")
+# f_load <type>player <guild>g <channel>ch <playerid>p <name>n <player_name>pn
+
+load.game.act(0x1,0x12,"set",["l",100],"main","noob")
+# f_load <type>stat <guild>g <channel>ch <value>v1 <value>v2 <name>n <player_name>pn
+print(load.game.active_games)

@@ -60,14 +60,14 @@ def getPlayerIndex(g,ch,p):
 		for j in range(len(active_games[i]["players"])):
 			idp = (active_games[i]["players"][j]["userid"] == p)
 			if (isg and isch and idp):
-				return i;
+				return j;
 	return -1;
 
 def getPlayerIndexName(pn,i):
 	for j in range(len(active_games[i]["players"])):
 		isp = (active_games[i]["players"][j]["name"] == pn)
 		if (isp):
-			return i;
+			return j;
 	return -1;
 
 def getIndex(g,ch,c,n):
