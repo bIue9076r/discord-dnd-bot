@@ -3,7 +3,11 @@ import game
 import json
 FLAGS = [
 	0,		# load flag
+	1,		# version
 ]
+
+def f_end(v):
+	pass # empty function to signal EOF
 
 def f_log(v):
 	print(v[0])

@@ -1,4 +1,9 @@
 import load
+import save
+import json
+
+def dictlog(d):
+	print(json.dumps(d, indent=4))
 
 def f_splitStr(s):
 	tret = [0,None]
@@ -10,6 +15,8 @@ def f_splitStr(s):
 	literal = False
 	
 	for i in range(0,len(s)):
+		if(i == len(s) - 1 and s[i] == "\n"):
+			break;
 		if (s[i] == "\n" and not literal):
 			if (to != None and o != ""):
 				o = ""
@@ -40,6 +47,7 @@ f_cmds = {
 	"f_load":	load.f_load,
 	"f_flags":	load.f_flags,
 	"f_log":	load.f_log,
+	"f_end":	load.f_end,
 }
 
 def f_pmes(data):
@@ -53,12 +61,9 @@ def f_pmes(data):
 			f_cmds[comands[i][0]](args)
 	
 
-mindex = open('./index.txt','a+')
-#mindex.seek(0)
-#print(f_splitStr(str(mindex.read())))
-
-mindex.seek(0)
+mindex = open('./index.txt','r+')
 f_pmes(mindex.read())
+
 
 load.game.startGame(0x1,0x12,0x1,"main")
 # f_load <type>game <guild>g <channel>ch <commander>c <name>n
@@ -66,6 +71,12 @@ load.game.startGame(0x1,0x12,0x1,"main")
 load.game.joinGame(0x1,0x12,0x2,"main","noob")
 # f_load <type>player <guild>g <channel>ch <playerid>p <name>n <player_name>pn
 
-load.game.act(0x1,0x12,"set",["l",100],"main","noob")
+load.game.act(0x1,0x12,"set",["l","100"],"main","noob")
 # f_load <type>stat <guild>g <channel>ch <value>v1 <value>v2 <name>n <player_name>pn
-print(load.game.active_games)
+
+save.G_save()
+
+sindex = open('./save.txt','r+')
+f_pmes(sindex.read())
+
+dictlog(load.game.active_games)

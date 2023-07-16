@@ -86,17 +86,17 @@ def updateIndexes():
 		ich = active_games[i]["channel"]
 		ic = active_games[i]["commander"]["userid"]
 		inm = active_games[i]["commander"]["name"]
-		key = str(ig) + str(ich) + str(ic) + inm
+		key = str(ig) + str(ich) + str(ic) + str(inm)
 		
 		agame_index[key] = i
 
 def startGame(g,ch,c,n="main"):	
 	if (not checkDup(n)):
 		agme = {
-			"guild":		g,
-			"channel":		ch,
+			"guild":		str(g),
+			"channel":		str(ch),
 			"commander":	{
-				"userid": c, "name": n
+				"userid": str(c), "name": str(n)
 			},
 			"players":		[
 				#{"userid": 0x0,"stats": []}
@@ -107,7 +107,7 @@ def startGame(g,ch,c,n="main"):
 		ag_index = getIndex(g,ch,c,n)
 		
 		if (ag_index > -1):
-			agame_index[str(g) + str(ch) + str(c) + n] = ag_index
+			agame_index[str(g) + str(ch) + str(c) + str(n)] = ag_index
 			return [True];
 		else:
 			return [False,"unable to start game"];
@@ -115,7 +115,7 @@ def startGame(g,ch,c,n="main"):
 		return [False,"duplicate game"];
 
 def endGame(g,ch,c,n="main"):
-	gchcn = str(g) + str(ch) + str(c) + n
+	gchcn = str(g) + str(ch) + str(c) + str(n)
 	agi = agame_index[gchcn]
 	
 	if(agi != None):
@@ -128,13 +128,13 @@ def endGame(g,ch,c,n="main"):
 		return [False,"no game to end"];
 
 def joinGame(g,ch,p,n="main",pn="noob"):
-	agi = getIndexName(g,ch,n)
+	agi = getIndexName(str(g),str(ch),str(n))
 	
 	if(agi > -1):
-		if (not checkDupPlr(agi,p)):
+		if (not checkDupPlr(agi,str(p))):
 			player = {
-				"userid": p,
-				"name": pn,
+				"userid": str(p),
+				"name": str(pn),
 				"stats": {},
 			}
 			
@@ -146,8 +146,8 @@ def joinGame(g,ch,p,n="main",pn="noob"):
 		return [False,"no game to join"]
 
 def quitGame(g,ch,p,n="main"):
-	agi = getIndexName(g,ch,n)
-	api = getPlayerIndex(g,ch,p)
+	agi = getIndexName(str(g),str(ch),str(n))
+	api = getPlayerIndex(str(g),str(ch),str(p))
 	
 	if(agi > -1):
 		if(api > -1):
@@ -163,10 +163,10 @@ def quitGame(g,ch,p,n="main"):
 def act(g,ch,op="nop",v=[0],n="main",pn="noob"):
 	if(not(op in ops)):
 		return [False, "Invalid operation"]
-	agi = getIndexName(g,ch,n)
+	agi = getIndexName(str(g),str(ch),str(n))
 	if(agi < 0):
 		return [False,"you are not hosting that game"]
-	api = getPlayerIndexName(pn,agi)
+	api = getPlayerIndexName(str(pn),agi)
 	if(api < 0):
 		return [False,"that player is not in the party"]
 	res = ops[op](v)
@@ -177,19 +177,18 @@ def act(g,ch,op="nop",v=[0],n="main",pn="noob"):
 	return [True];
 
 def stats(g,ch,n="main",pn="noob"):
-	agi = getIndexName(g,ch,n)
+	agi = getIndexName(str(g),str(ch),str(n))
 	if(agi < 0):
 		return [False,"that game does not exist"];
-	api = getPlayerIndexName(pn,agi)
+	api = getPlayerIndexName(str(pn),agi)
 	if(api < 0):
 		return [False,"that player is not in the party"];
 	
 	return [True,active_games[agi]["players"][api]["stats"]];	
 
 def players(g,ch,n="main"):
-	agi = getIndexName(g,ch,n)
+	agi = getIndexName(str(g),str(ch),str(n))
 	if(agi < 0):
 		return [False,"that game does not exist"];
 	
-	return [True,active_games[agi]["players"]];	
-
+	return [True,active_games[agi]["players"]];
