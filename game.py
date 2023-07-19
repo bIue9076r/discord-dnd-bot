@@ -31,51 +31,51 @@ ops = {
 
 def checkDup(n):
 	for i in range(len(active_games)):
-		idp = (active_games[i]["commander"]["name"] == n)
+		idp = (active_games[i]["commander"]["name"] == str(n))
 		if (idp):
 			return True;
 	return False;
 
 def checkDupPlr(i,p):
 	for j in range(len(active_games[i]["players"])):
-		idp = (active_games[i]["players"][j]["userid"] == p)
+		idp = (active_games[i]["players"][j]["userid"] == str(p))
 		if (idp):
 			return True;
 	return False;
 
 def getIndexName(g,ch,n):
 	for i in range(len(active_games)):
-		isg =  (active_games[i]["guild"] == g)
-		isch = (active_games[i]["channel"] == ch)
-		idp = (active_games[i]["commander"]["name"] == n)
+		isg =  (active_games[i]["guild"] == str(g))
+		isch = (active_games[i]["channel"] == str(ch))
+		idp = (active_games[i]["commander"]["name"] == str(n))
 		if (isg and isch and idp):
 			return i;
 	return -1;
 
 def getPlayerIndex(g,ch,p):
 	for i in range(len(active_games)):
-		isg =  (active_games[i]["guild"] == g)
-		isch = (active_games[i]["channel"] == ch)
+		isg =  (active_games[i]["guild"] == str(g))
+		isch = (active_games[i]["channel"] == str(ch))
 		
 		for j in range(len(active_games[i]["players"])):
-			idp = (active_games[i]["players"][j]["userid"] == p)
+			idp = (active_games[i]["players"][j]["userid"] == str(p))
 			if (isg and isch and idp):
 				return j;
 	return -1;
 
 def getPlayerIndexName(pn,i):
 	for j in range(len(active_games[i]["players"])):
-		isp = (active_games[i]["players"][j]["name"] == pn)
+		isp = (active_games[i]["players"][j]["name"] == str(pn))
 		if (isp):
 			return j;
 	return -1;
 
 def getIndex(g,ch,c,n):
 	for i in range(len(active_games)):
-		isg =  (active_games[i]["guild"] == g)
-		isch = (active_games[i]["channel"] == ch)
-		isc =  (active_games[i]["commander"]["userid"] == c)
-		isn =  (active_games[i]["commander"]["name"] == n)
+		isg =  (active_games[i]["guild"] == str(g))
+		isch = (active_games[i]["channel"] == str(ch))
+		isc =  (active_games[i]["commander"]["userid"] == str(c))
+		isn =  (active_games[i]["commander"]["name"] == str(n))
 		if (isg and isch and isc and isn):
 			return i;
 	return -1;
@@ -104,7 +104,7 @@ def startGame(g,ch,c,n="main"):
 		};
 		
 		active_games.append(agme)
-		ag_index = getIndex(g,ch,c,n)
+		ag_index = getIndex(str(g),str(ch),str(c),str(n))
 		
 		if (ag_index > -1):
 			agame_index[str(g) + str(ch) + str(c) + str(n)] = ag_index

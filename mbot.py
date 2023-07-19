@@ -1,9 +1,13 @@
+import json
+import os.path
 import discord
 import roll
 import game
 import load
+import save
 
 tok = str(open('tok.txt').read())
+GSAVEPATH = './saves/index.txt'
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -46,14 +50,31 @@ def splitStr(s):
 	
 	return ret;
 
+def dictlog(d):
+	print(json.dumps(d, indent=4))
+
 def f_splitStr(s):
+	tret = [0,None]
 	ret = [""]
+	to = [None]
 	o = ""
+	tindex = 1
 	index = 0
 	literal = False
 	
 	for i in range(0,len(s)):
-		if (s[i] == " " and not literal):
+		if(i == len(s) - 1 and s[i] == "\n"):
+			break;
+		if (s[i] == "\n" and not literal):
+			if (to != None and o != ""):
+				o = ""
+				ret = [""]
+				index = 0
+				to = [None]
+				tret.append(None)
+				tindex = tindex + 1
+				tret[0] = tindex
+		elif (s[i] == " " and not literal):
 			if (o != ""):
 				o = ""
 				ret.append("")
@@ -63,9 +84,11 @@ def f_splitStr(s):
 		else:
 			o = o + s[i]
 			ret[index] = o
+			to = ret
+			tret[tindex] = to
 			escape = False
 	
-	return ret;
+	return tret;
 
 async def b_help(message,args):
 	await message.channel.send(
@@ -73,6 +96,8 @@ async def b_help(message,args):
 	"echo:    ~echo    ...\n"+
 	"echok:   ~echok   ...\n"+
 	"about:   ~about\n"+
+	"save:    ~save <file> <game>\n"
+	"load:    ~load <file>"
 	"games:   ~games\n"+
 	"start:   ~start   <name>\n"+
 	"end:     ~end     <game>\n"+
@@ -118,17 +143,50 @@ async def b_echo_k(message,args):
 		p = p + args[i] + " "
 	await message.channel.send(p)
 
-
 async def b_about(message,args):
 	await message.channel.send(
 	f"```txt\n"+
-	f"Version:   1.0 (release)\n"+
+	f"Version:   2.0 (Save & Load)\n"+
 	f"Prefixes:  ~!=#$%&-.>?\n"+
 	f"user:      {client.user}\n"+
 	f"channel:   {message.channel.id}\n"+
 	f"guild:     {message.guild.id}\n"+
 	f"```"
 	)
+
+async def b_save(message,args):
+	if (len(args) < 2):
+		await message.channel.send("Usage: ~save <file> <game>")
+		return;
+	
+	mg = message.guild.id
+	mch = message.channel.id
+	
+	if(args[1] == "ALL" or args[1] == "all"):
+		await message.channel.send(f"Attempting to save games at \"{args[0]}\"")
+		ret = save.G_save(args[0])
+		if(ret[0]):
+			await message.channel.send(f"Saved all games at \"{args[0]}\"")
+		return;
+	
+	await message.channel.send(f"Attempting to save \"{args[1]}\" at \"{args[0]}\"")
+	save.startSave(args[0])
+	ret = save.saveGame(mg,mch,args[0],args[1])
+	save.closeSave(args[0])
+	if(ret[0]):
+		await message.channel.send(f"Saved \"{args[1]}\" at \"{args[0]}\"")
+	return;
+
+async def b_load(message,args):
+	if (len(args) < 1):
+		await message.channel.send("Usage: ~load <file>")
+		return;
+	
+	await message.channel.send(f"Attempting to load \"{args[0]}\"")
+	l_f = open(args[0],'r+')
+	f_pmes(str(l_f.read()))
+	await message.channel.send(f"Loaded \"{args[0]}\"")
+	return;
 
 async def b_start(message,args):
 	if (len(args) < 1):
@@ -197,8 +255,8 @@ async def b_games(message,args):
 	s = "```txt\n"
 	n = "No current games\n"
 	for i in range(len(game.active_games)):
-		isg = (game.active_games[i]["guild"] == mg)
-		isch = (game.active_games[i]["channel"] == mch)
+		isg = (game.active_games[i]["guild"] == str(mg))
+		isch = (game.active_games[i]["channel"] == str(mch))
 		if(isg and isch):
 			ind = game.active_games[i]
 			s = s + f"{ind['commander']['name']}: {len(ind['players'])} players\n"
@@ -287,11 +345,9 @@ async def b_players(message,args):
 
 
 async def d_data(message,args):
-	print(
-		game.active_games,
-		"\n",
-		game.agame_index
-	)
+	dictlog(game.active_games)
+	print("\n")
+	dictlog(game.agame_index)
 	
 	await message.delete()
 
@@ -300,6 +356,8 @@ cmds = {
 	"echo":		b_echo,
 	"echok":	b_echo_k,
 	"about":	b_about,
+	"save":		b_save,
+	"load":		b_load,
 	"start":	b_start,
 	"end":		b_end,
 	"join":		b_join,
@@ -327,6 +385,9 @@ cmds = {
 f_cmds = {
 	"f_set":	load.f_set,
 	"f_load":	load.f_load,
+	"f_flags":	load.f_flags,
+	"f_log":	load.f_log,
+	"f_end":	load.f_end,
 }
 
 async def pmes(message):
@@ -342,17 +403,19 @@ async def pmes(message):
 
 def f_pmes(data):
 	mtbl = f_splitStr(data)
-	comand = mtbl[0]	# string
-	args = mtbl[1:]		# table
+	cmlen = mtbl[0]
+	comands = mtbl[1:]	# string tables
 	
-	if (comand in f_cmds):
-		f_cmds[comand](args)
+	for i in range(0,cmlen):
+		if (comands[i][0] in f_cmds):
+			args = comands[i][1:]		# string tables table
+			f_cmds[comands[i][0]](args)
 
 @client.event
 async def on_ready():
-	mindex = open('./saves/index.txt','a+')
-	mindex.seek(0)
-	f_pmes(str(mindex.read()))
+	if(os.path.isfile(GSAVEPATH)):	# if global save
+		mindex = open(GSAVEPATH,'r+')
+		f_pmes(str(mindex.read()))
 	
 	print(f'Logged in as {client.user}')
 
